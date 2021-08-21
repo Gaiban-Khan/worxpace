@@ -306,7 +306,7 @@ case "$option" in
     fi
   else
     echo "Invalid arguments :("
-    echo "Usage: worxpace -a [worxpace Name]"
+    echo "Usage: worxpace -a <Worxpace_Name>"
   fi
   exit ;;
 
@@ -328,7 +328,7 @@ case "$option" in
     done
   else
     echo "Invalid arguments :("
-    echo "Usage: worxpace -l [worxpace Name...]"
+    echo "Usage: worxpace -l <Worxpace_Name...>"
   fi
   exit ;;
 
@@ -378,7 +378,7 @@ case "$option" in
     fi
   else
     echo "Invalid arguments :("
-    echo "Usage: worxpace -r [worxpace Name] [App/file/website name]"
+    echo "Usage: worxpace -r <Worxpace_Name> <App/file/website_Name>"
   fi
   exit ;;
 
@@ -403,7 +403,7 @@ case "$option" in
     done
   else
     echo "Invalid arguments :("
-    echo "Usage: worxpace -rw [worxpace Name...]"
+    echo "Usage: worxpace -rw <Worxpace_Name...>"
   fi
   exit ;;
 
@@ -425,7 +425,7 @@ case "$option" in
     done
   else
     echo "Invalid arguments :("
-    echo "Usage: worxpace -o [worxpace Name...]"
+    echo "Usage: worxpace -o <Worxpace_Name...>"
   fi
   exit ;;
 
