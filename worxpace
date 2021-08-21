@@ -1,0 +1,444 @@
+#!/bin/bash
+
+# Project name: Worxpace.
+# Worxpace is a command-line tool that helps to create 'worxpaces'.
+# 'Worxpaces' are just groups of apps, links & files.
+# Easily create worxpaces and open them with a single command.
+
+# Author: Mohammed Gaiban Khan (@Gaiban-Khan : GitHub).
+
+# Read the first command-line arg as option.
+option=$1
+shift 1
+
+# Creating .worxpace dir in user's home dir (if not present).
+if [ ! -d ~/.worxpace ] ; then
+  mkdir ~/.worxpace
+fi
+
+# Checking the OS of the system.
+osName=$(uname)
+
+# Function to add links/websites to a worxpace.
+function addLinks() {
+
+  # Reading the name of the website.
+  printf "Enter the name of the website:  "
+  read -r websiteName
+
+  # Formatting the name of the website.
+  websiteName=$(echo "$websiteName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+
+  # Checking for empty website name.
+  while [ -z "$websiteName" ] ; do
+    echo "Website name cannot be empty!"
+    printf "Enter the name of the website:  "
+    read -r websiteName
+    websiteName=$(echo "$websiteName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+  done
+
+  #  Checking if a website with the same name already exists in the worxpace.
+  if grep -ixq "$websiteName" "$worxpaceName" ; then
+    echo "$websiteName already exists in $(basename "$worxpaceName")!"
+  else
+    # Reading the link.
+    printf "Enter the link:  "
+    read -r link
+
+    # Checking for empty link.
+    while [ -z "$link" ] ; do
+      echo "Link cannot be empty!"
+      printf "Enter the link:  "
+      read -r link
+    done
+
+    # Writing the website's name and link to the worxpace file.
+    echo "$websiteName" >> "$worxpaceName"
+    echo "$link" >> "$worxpaceName"
+    echo "Added $websiteName to $(basename "$worxpaceName") successfully!"
+  fi
+
+}
+
+# Function to add files to a worxpace.
+function addFiles() {
+  
+  # Reading the name of the file.
+  printf "Enter the name of the file:  "
+  read -r fileName
+    
+  # Formatting the file name.
+  fileName=$(echo "$fileName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+  
+  # Checking for empty file name.
+  while [ -z "$fileName" ]; do
+    echo "File name cannot be empty!"
+    prinf "Enter the name of the file:  "
+    read -r fileName
+    fileName=$(echo "$fileName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+  done
+
+  # Checking if a file with the same name already exists in the worxpace.
+  if grep -ixq "$fileName" "$worxpaceName" ; then
+    echo "$fileName file already exists in $(basename "$worxpaceName")!"
+  else
+    # Reading the file's path.
+    printf "Enter the path:  "
+    read -r path
+
+    # Checking for empty or invalid paths.
+    while [ -z "$path" ] || [ ! -f "$path" ] ; do
+      echo "Invalid path!"
+      printf "Enter the path:  "
+      read -r path
+    done
+
+    # Writing the file's name and path to the worxpace file.
+    echo "$fileName" >> "$worxpaceName"
+    echo "$path" >> "$worxpaceName"
+    echo "Added $fileName to $(basename "$worxpaceName") successfully!"
+  fi
+
+}
+
+# Function to add applications to a worxpace.
+function addApps() {
+
+  unset appName
+  unset appPath
+
+  # Reading app's name.
+  printf "Enter the name of the app:  "
+  read -r appName
+
+  # Formatting the app's name.
+  appName=$(echo "$appName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+
+  # Checking for empty app name.
+  while [ -z "$appName" ] ; do
+    echo "App name cannot be empty!"
+    printf "Enter the name of the app:  "
+    read -r appName
+  done
+
+  # Checking if an app with the same name already exists in the worxpace.
+  if grep -ixq "$appName" "$worxpaceName" ; then
+    echo "$appName already exists in $(basename "$worxpaceName")"
+  else
+    # Checking if the system's os is Darwin (Mac OS X).
+    if [[ "$osName" == "Darwin" ]] ; then
+      # Directories where apps can be found on macOS.
+      pathSystem="/System/Applications"
+      pathApp="/Applications"
+      pathU="$HOME/Applications"
+      echo "Finding your app..."
+
+      # Looking for the app in the above-mentioned directories.
+      appPath=$(find "$pathApp" -maxdepth 2 -iname "$appName.app")
+      if [ -z "$appPath" ] ; then
+        appPath=$(find "$pathSystem" -maxdepth 2 -iname "$appName.app")
+        if [ -z "$appPath" ] ; then
+          appPath=$(find "$pathU" -maxdepth 2 -iname "$appName.app")
+        fi
+      fi
+    else
+      # For linux distros.
+
+      # We can launch an app using the app's .desktop file.
+      # This .desktop file can be found in these directories.
+      pathSystem="/usr/share/applications"
+      pathUser="$HOME/.local/share/applications"
+
+      # Looking for the app's .desktop file in the above-mentioned directories.
+      appPath=$(grep -Ril "Name=$appName" --include="*.desktop" "$pathSystem" | head -1)
+      if [ -z "$appPath" ] ; then
+        appPath=$(grep -Ril "Name=$appName" --include="*.desktop" "$pathUser" | head -1)
+      fi
+    fi
+
+    # Checking if app search was successful.
+    if [ -z "$appPath" ] ; then
+      echo "App not found :("
+    else
+      # Writing the app's name and path to the worxpace file.
+      echo "$appName" >> "$worxpaceName"
+      echo "$appPath" >> "$worxpaceName"
+      echo "Added $appName to $(basename "$worxpaceName") successfully!"
+    fi
+  fi
+
+}
+
+# Function used to generate a menu, puts all the below-mentioned functions to use.
+# This function uses addLinks(), addApps() and addFiles().
+function addFunc() {
+
+  while true
+  do
+    echo "What do you want to add?"
+    echo "1. App"
+    echo "2. Link"
+    echo "3. File"
+    echo "Or any other number to exit"
+    printf "Please enter your choice:  "
+    read -r choice
+    if [[ "$choice" == "1" ]] ; then
+      addApps
+    elif [[ "$choice" == "2" ]] ; then
+      addLinks
+    elif [[ "$choice" == "3" ]] ; then
+      addFiles
+    else
+      return
+    fi
+
+    # Reads user's choice for continuation.
+    printf "Wanna add more things? [y/n]  "
+    read -r choice
+    if [ "$choice" == "${choice#[Yy]}" ] ; then
+     break
+    fi
+  done
+
+}
+
+# Function to list the contents of a worxpace.
+function listFunc() {
+
+  # In the worxpace files, assuming the numbering of lines starts from 0,
+  # an even-numbered line contains the name of an app/website/file
+  # and the line immediately following it has the path/link (hence odd-numbered).
+  i=0
+  echo "Contents of worxpace $(basename "$worxpaceName"):"
+  while read -r line ; do
+    if ((i % 2 == 0)) ; then
+      printf "%s -> " "$line"
+    else
+      printf "%s\n" "$line"
+    fi
+    i=$((i + 1))
+  done < "$worxpaceName"
+
+}
+
+# Function to open or set-up a worxpace.
+function openFunc() {
+
+  # Assuming numbering of lines starts from 0.
+  i=0
+  echo "Opening things in worxpace $(basename "$worxpaceName")..."
+
+  # Reading the worxpace file line by line.
+  # If line number is an even number, ignore as it contains the name of an app/website/file.
+  # But if the line number is an odd number, then use it to open the app/website/file.
+  # Because odd-numbered lines contain the path/link.
+  while read -r line ; do
+    if ((i % 2 != 0)) ; then
+      if [[ "$osName" == "Darwin"  ]] ; then
+        # For macOS.
+        open "$line"
+      else
+        # For linux distros.
+        # Checking if it's a .desktop file.
+        if [[ "$line" =~ \.desktop$ ]] ; then
+          # .desktop files can be launched using gtk-launch.
+          gtk-launch "$(basename "$line")"
+        else
+          # Website links and files can be opened using xdg-open.
+          xdg-open "$line"
+        fi
+      fi
+    fi
+    i=$((i + 1))
+  done < "$worxpaceName"
+
+}
+
+case "$option" in
+# Option to create a new worxpace.
+-n|--new)
+  # Reading the name of the new worxpace.
+  printf "Enter the name of the worxpace (one-word):  "
+  read -r worxpaceName
+
+  # Checking if the worxpace name is empty or multi-worded.
+  while [[ "$worxpaceName" == *" "* || -z "$worxpaceName" ]] ; do
+    if [ -z "$worxpaceName" ] ; then
+      echo "Worxpace name cannot be empty!"
+    fi
+    if [[ "$worxpaceName" = *" "* ]] ; then
+      echo "Worxpace name must be a single word!"
+    fi
+    printf "Enter the name of the worxpace (one-word):  "
+    read -r worxpaceName
+  done
+
+  # Formatting the worxpace's name
+  worxpaceName=$(echo "$worxpaceName" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+  # Setting the actual path of the worxpace file to worxpaceName.
+  worxpaceName="$HOME/.worxpace/$worxpaceName"
+
+  # Checking if a worxpace file with the same name already exists.
+  if [ -f "$worxpaceName" ] ; then
+    echo "Worxpace $(basename "$worxpaceName") already exists!"
+  else
+    touch "$worxpaceName"
+    addFunc
+  fi
+  exit ;;
+
+# Option to add apps/websites/files to a worxpace.
+-a|--add)
+  # Checking if the number of args passed is equal to 1.
+  # Because you can only add things to a single group at a time.
+  if [ $# -eq 1 ] ; then
+    # Reading the first command-line argument as worxpaceName
+    worxpace=$1
+    worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+    worxpaceName="$HOME/.worxpace/$worxpace"
+
+    # Checking if the worxpace file exists.
+    if [ -f "$worxpaceName" ] ; then
+      addFunc
+    else
+      echo "Worxpace $(basename "$worxpaceName") not found :("
+      echo "You can create it using the option '-n'"
+    fi
+  else
+    echo "Invalid arguments :("
+    echo "Usage: worxpace -a [worxpace Name]"
+  fi
+  exit ;;
+
+# Option to list the things in a worxpace.
+-l|--list)
+  # Checking if the number of args passed is greater than or equal to 1.
+  # Because you can list the contents of multiple worxpaces at once.
+  if [ $# -ge 1 ] ; then
+    for worxpace in "$@" ; do
+      # Setting and formatting the worxpaceName.
+      worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+      worxpaceName="$HOME/.worxpace/$worxpace"
+      # Checking if the worxpace file exists.
+      if [ -f "$worxpaceName" ] ; then
+        listFunc
+      else
+        echo "Worxpace $(basename "$worxpaceName") not found :("
+      fi
+    done
+  else
+    echo "Invalid arguments :("
+    echo "Usage: worxpace -l [worxpace Name...]"
+  fi
+  exit ;;
+
+# Option to list existing worxpaces.
+-lw|--listWorxpaces)
+  echo "Your worxpaces:"
+  ls ~/.worxpace
+  exit ;;
+
+# Option to remove an app/website/file from a worxpace.
+-r|--remove)
+  # This option takes in 2 args,
+  # 1st arg -> worxpace name
+  # 2nd arg -> name of the app/website/file.
+
+  # Checking if the number of args is greater than or equal to zero.
+  # Because name of the app/website/file can be multi-worded.
+  if [ $# -ge 0 ]; then
+    # Setting and formatting the worxpaceName.
+    worxpace=$1
+    worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+    worxpaceName="$HOME/.worxpace/$worxpace"
+
+    # Checking if the worxpace file exists.
+    if [ -f "$worxpaceName" ] ; then
+      shift 1
+
+      # Checking if the app/website/file name exists in the worxpace file.
+      if grep -ixq "$*" "$worxpaceName" ; then
+        # Setting and formatting the website/file/app name.
+        object=$*
+        object=$(echo "$object" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+
+        # Checking the OS name.
+        # Then deleting the line containing the name and the line immediately following it.
+        if [[ $osName == "Darwin" ]] ; then
+          sed -i "" "/$object/,+1 d" "$worxpaceName"
+        else
+          sed -i -e "/$object/,+1 d" "$worxpaceName"
+        fi
+        echo "$object has been removed successfully!"
+      else
+        echo "$object isn't present in worxpace $(basename "$worxpaceName")"
+      fi
+    else
+      echo "Worxpace $(basename "$worxpaceName") not found :("
+    fi
+  else
+    echo "Invalid arguments :("
+    echo "Usage: worxpace -r [worxpace Name] [App/file/website name]"
+  fi
+  exit ;;
+
+# Option to remove worxpaces.
+-rw|--removeworxpaces)
+  # Using this option, you can remove more than one worxpace.
+  # Reading all the worxpaces entered by the user.
+  if [ $# -ge 1 ] ; then
+    for worxpace in "$@" ; do
+      # Setting and formatting the worxpace name.
+      worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+      worxpaceName="$HOME/.worxpace/$worxpace"
+
+      # Checking if the worxpace file exists.
+      if [ -f "$worxpaceName" ] ; then
+        # Deleting the worxpace file.
+        rm "$worxpaceName"
+        echo "Worxpace $(basename "$worxpaceName") removed successfully!"
+      else
+        echo "Worxpace $(basename "$worxpaceName") not found :("
+      fi
+    done
+  else
+    echo "Invalid arguments :("
+    echo "Usage: worxpace -rw [worxpace Name...]"
+  fi
+  exit ;;
+
+# Option to open things in a worxpace.
+-o|--open)
+  # Using this option you can open many worxpaces.
+  if [ $# -ge 1 ] ; then
+    for worxpace in "$@" ; do
+      # Setting and formatting the worxpace name.
+      worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
+      worxpaceName="$HOME/.worxpace/$worxpace"
+
+      # Checking if the worxpace exists.
+      if [ -f "$worxpaceName" ] ; then
+        openFunc
+      else
+        echo "Worxpace $(basename "$worxpaceName") not found :("
+      fi
+    done
+  else
+    echo "Invalid arguments :("
+    echo "Usage: worxpace -o [worxpace Name...]"
+  fi
+  exit ;;
+
+# Default case: if no valid option is entered.
+*)
+  echo "Here's a list of options to use with worxpace."
+  echo "To create a new worxpace: worxpace -n"
+  echo "To add things to a worxpace: worxpace -a [worxpace name]"
+  echo "To list things in a worxpace(s): worxpace -l [worxpace name...]"
+  echo "To list worxpaces: worxpace -lw"
+  echo "To remove things from a worxpace: worxpace -r [worxpace name] [App/file/website name]"
+  echo "To remove a worxpace(s): worxpace -rw [worxpace name...]"
+  echo "To open things in a worxpace(s): worxpace -o [worxpace name...]"
+  exit ;;
+
+esac
