@@ -433,12 +433,12 @@ case "$option" in
 *)
   echo "Here's a list of options to use with worxpace."
   echo "To create a new worxpace: worxpace -n"
-  echo "To add things to a worxpace: worxpace -a [worxpace name]"
-  echo "To list things in a worxpace(s): worxpace -l [worxpace name...]"
+  echo "To add things to a worxpace: worxpace -a <Worxpace_name>"
+  echo "To list things in a worxpace(s): worxpace -l <Worxpace_name...>"
   echo "To list worxpaces: worxpace -lw"
-  echo "To remove things from a worxpace: worxpace -r [worxpace name] [App/file/website name]"
-  echo "To remove a worxpace(s): worxpace -rw [worxpace name...]"
-  echo "To open things in a worxpace(s): worxpace -o [worxpace name...]"
+  echo "To remove things from a worxpace: worxpace -r <Worxpace_name> <App/file/website_name>"
+  echo "To remove a worxpace(s): worxpace -rw <Worxpace_name...>"
+  echo "To open things in a worxpace(s): worxpace -o <Worxpace_name...>"
   exit ;;
 
 esac
