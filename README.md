@@ -61,4 +61,4 @@ It has 7 easy to remember options:
 
 ## Contributors 👨‍💻:
 
-[Mohammed Gaiban Khan](https://github.com/Gaiban-Khan)
+- [Mohammed Gaiban Khan](https://github.com/Gaiban-Khan)
