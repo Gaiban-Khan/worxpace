@@ -333,7 +333,7 @@ case "$option" in
   exit ;;
 
 # Option to list existing worxpaces.
--lw|--listWorxpaces)
+-lw|--listworxpaces)
   echo "Your worxpaces:"
   ls ~/.worxpace
   exit ;;
