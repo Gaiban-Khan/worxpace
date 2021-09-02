@@ -346,7 +346,7 @@ case "$option" in
 
   # Checking if the number of args is greater than or equal to zero.
   # Because name of the app/website/file can be multi-worded.
-  if [ $# -ge 0 ]; then
+  if [ $# -ge 2 ]; then
     # Setting and formatting the worxpaceName.
     worxpace=$1
     worxpace=$(echo "$worxpace" | awk '{ print toupper( substr($0,1,1) ) tolower( substr($0,2) ) }')
